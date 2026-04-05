@@ -3,16 +3,15 @@ import {
   useContext,
   useEffect,
   useState,
-  ReactNode,
 } from 'react'
+import type { ReactNode } from 'react'
 import {
-  User as FirebaseUser,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  UserCredential,
 } from 'firebase/auth'
+import type { User as FirebaseUser, UserCredential } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 
 interface AuthContextType {
