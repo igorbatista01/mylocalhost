@@ -18,7 +18,9 @@ export default function Dashboard() {
           My<span className="text-brand-500">LocalHost</span>
         </h1>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">{currentUser?.email}</span>
+          <span className="text-sm text-gray-400">
+            {currentUser?.displayName || currentUser?.email}
+          </span>
           <button
             onClick={handleLogout}
             className="text-sm text-gray-400 hover:text-white transition"
@@ -31,7 +33,9 @@ export default function Dashboard() {
       {/* Content */}
       <main className="p-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-semibold">Seu Dashboard</h2>
+          <h2 className="text-2xl font-semibold">
+            Olá{currentUser?.displayName ? `, ${currentUser.displayName}` : ''} 👋
+          </h2>
           <p className="text-gray-400 text-sm mt-1">
             Arraste e solte os widgets para reorganizar.
           </p>

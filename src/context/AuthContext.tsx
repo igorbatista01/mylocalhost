@@ -9,6 +9,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile,
   signOut,
 } from 'firebase/auth'
 import type { User as FirebaseUser, UserCredential } from 'firebase/auth'
@@ -18,7 +19,7 @@ interface AuthContextType {
   currentUser: FirebaseUser | null
   loading: boolean
   login: (email: string, password: string) => Promise<UserCredential>
-  register: (email: string, password: string) => Promise<UserCredential>
+  register: (name: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -42,13 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe
   }, [])
 
-  const login    = (email: string, password: string) =>
+  const login = (email: string, password: string) =>
     signInWithEmailAndPassword(auth, email, password)
 
-  const register = (email: string, password: string) =>
-    createUserWithEmailAndPassword(auth, email, password)
+  const register = async (name: string, email: string, password: string) => {
+    const { user } = await createUserWithEmailAndPassword(auth, email, password)
+    await updateProfile(user, { displayName: name.trim() })
+    // Refresh currentUser so displayName is available immediately
+    setCurrentUser({ ...user, displayName: name.trim() } as FirebaseUser)
+  }
 
-  const logout   = () => signOut(auth)
+  const logout = () => signOut(auth)
 
   return (
     <AuthContext.Provider value={{ currentUser, loading, login, register, logout }}>
