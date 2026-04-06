@@ -49,3 +49,48 @@ export interface Widget {
 export interface DashboardConfig {
   widgets: Widget[]
 }
+
+// ─── Kanban (snapshot sub-types) ─────────────────────────────────────────────
+
+export interface KanbanTask {
+  id: string
+  title: string
+  columnId: string
+  order: number
+}
+
+export interface KanbanColumn {
+  id: string
+  title: string
+  order: number
+}
+
+export interface KanbanData {
+  columns: KanbanColumn[]
+  tasks: KanbanTask[]
+}
+
+// ─── Focus widget ─────────────────────────────────────────────────────────────
+
+export interface FocusData {
+  title: string
+  description: string
+}
+
+// ─── Day Snapshot ─────────────────────────────────────────────────────────────
+// Stored at /users/{uid}/days/{YYYY-MM-DD}
+
+export interface DaySnapshot {
+  date: string                          // YYYY-MM-DD
+  kanban: KanbanData
+  habits: Record<string, boolean>       // habitId → checked
+  notes: string[]
+  quote: string
+  counters: Record<string, number>      // counterId → value
+  focus: FocusData
+  createdAt: Date
+  frozenAt: Date | null                 // null while today; set when the day passes
+}
+
+/** Partial update shapes passed to the update helpers */
+export type DaySnapshotSection = keyof Omit<DaySnapshot, 'date' | 'createdAt' | 'frozenAt'>
