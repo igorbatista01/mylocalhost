@@ -19,6 +19,7 @@ import { useDashboardConfig }   from '../hooks/useDashboardConfig'
 import WidgetContainer          from '../components/WidgetContainer'
 import AddWidgetModal           from '../components/AddWidgetModal'
 import PlaceholderWidget        from '../widgets/PlaceholderWidget'
+import KanbanWidget             from '../widgets/KanbanWidget'
 
 import type { UserRole, WidgetType } from '../types'
 
@@ -43,8 +44,10 @@ function RoleBadge({ role }: { role: UserRole }) {
 // ─── Widget renderer (dispatches to real widget or placeholder) ───────────────
 
 function renderWidgetContent(type: WidgetType) {
-  // Future: replace with real widget components per type
-  return <PlaceholderWidget type={type} />
+  switch (type) {
+    case 'kanban':  return <KanbanWidget />
+    default:        return <PlaceholderWidget type={type} />
+  }
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
