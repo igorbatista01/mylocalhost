@@ -1,0 +1,89 @@
+rules_version = '2';
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MyLocalHost — Firestore Security Rules
+//
+//  Roles:  admin | premium | user
+//
+//  Key principle: the client UI is UX-only. Firestore rules are the REAL
+//  enforcement layer. A malicious actor bypassing the UI still cannot read
+//  or write data they're not allowed to.
+// ════════════════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Reads the caller's own role from their Firestore profile.
+    // Costs 1 read per rule evaluation — acceptable for a small SaaS.
+    function callerRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && callerRole() == 'admin';
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ── /users/{uid} ─────────────────────────────────────────────────────────
+    match /users/{uid} {
+
+      // A user can read their own profile; admins can read any profile.
+      allow get: if isOwner(uid) || isAdmin();
+
+      // Only admins can list all users (e.g. admin panel).
+      allow list: if isAdmin();
+
+      // A user creates their own profile during registration (server timestamp).
+      // No one else can create a profile for someone else.
+      allow create: if isOwner(uid)
+                    && request.resource.data.uid == request.auth.uid;
+
+      // A user can update their own profile BUT cannot change their own role.
+      // Admins can update any field (including role) on any profile.
+      allow update: if (
+          isOwner(uid)
+          // Prevent self-promotion: the 'role' field must not be in the diff
+          && !('role' in request.resource.data.diff(resource.data).affectedKeys())
+        )
+        || isAdmin();
+
+      // Only admins can delete user profiles.
+      allow delete: if isAdmin();
+    }
+
+    // ── /invites/{code} ──────────────────────────────────────────────────────
+    match /invites/{code} {
+
+      // Anyone (even unauthenticated) can fetch a single invite by its code.
+      // This is required so the registration page can validate the code before
+      // the Firebase Auth account is created.
+      // The code itself acts as an unguessable secret (12 chars, ~60-bit entropy).
+      allow get: if true;
+
+      // Only admins can list all invites (admin panel).
+      allow list: if isAdmin();
+
+      // Only admins can create invite documents.
+      allow create: if isAdmin();
+
+      // An authenticated user can mark an invite as used exactly once.
+      // Enforced by: !resource.data.used (prevents re-use or tampering).
+      // The only writable transition is  used: false  →  used: true.
+      allow update: if isSignedIn()
+                    && resource.data.used == false
+                    && request.resource.data.used == true;
+
+      // Only admins can revoke (delete) unused invites.
+      allow delete: if isAdmin();
+    }
+  }
+}

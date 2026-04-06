@@ -1,12 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import { useAuth } from './context/AuthContext'
-import PrivateRoute from './components/PrivateRoute'
-import Login     from './pages/Login'
-import Register  from './pages/Register'
-import Dashboard from './pages/Dashboard'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import PrivateRoute  from './components/PrivateRoute'
+import AdminRoute    from './components/AdminRoute'
+import Login         from './pages/Login'
+import Register      from './pages/Register'
+import Dashboard     from './pages/Dashboard'
+import AdminPage     from './pages/admin/AdminPage'
+import Setup         from './pages/Setup'
 
-/** Redireciona / para /dashboard se logado, senão para /login */
+/** Redireciona / → /dashboard (logado) ou /login (não logado) */
 function RootRedirect() {
   const { currentUser } = useAuth()
   return <Navigate to={currentUser ? '/dashboard' : '/login'} replace />
@@ -17,9 +19,12 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Public */}
           <Route path="/"         element={<RootRedirect />} />
           <Route path="/login"    element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Protected — any authenticated user */}
           <Route
             path="/dashboard"
             element={
@@ -28,6 +33,20 @@ export default function App() {
               </PrivateRoute>
             }
           />
+
+          {/* Protected — admin only */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
+
+          {/* One-time admin setup — DELETE after use */}
+          <Route path="/setup" element={<PrivateRoute><Setup /></PrivateRoute>} />
+
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
