@@ -20,6 +20,7 @@ import WidgetContainer          from '../components/WidgetContainer'
 import AddWidgetModal           from '../components/AddWidgetModal'
 import PlaceholderWidget        from '../widgets/PlaceholderWidget'
 import KanbanWidget             from '../widgets/KanbanWidget'
+import HabitsWidget             from '../widgets/HabitsWidget'
 
 import type { UserRole, WidgetType } from '../types'
 
@@ -46,6 +47,7 @@ function RoleBadge({ role }: { role: UserRole }) {
 function renderWidgetContent(type: WidgetType) {
   switch (type) {
     case 'kanban':  return <KanbanWidget />
+    case 'habits':  return <HabitsWidget />
     default:        return <PlaceholderWidget type={type} />
   }
 }
