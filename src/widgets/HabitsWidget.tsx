@@ -307,10 +307,10 @@ function SettingsPanel({ habits, onSave, onClose }: SettingsPanelProps) {
                 </button>
                 <button
                   onClick={() => removeHabit(h.id)}
-                  className="text-gray-600 hover:text-red-400 transition text-lg leading-none flex-shrink-0"
+                  className="text-red-500/70 hover:text-red-400 hover:bg-red-500/10 transition text-sm px-2 py-1 rounded-lg border border-red-500/20 hover:border-red-500/40 flex-shrink-0"
                   title="Remover"
                 >
-                  ×
+                  🗑
                 </button>
               </div>
             )}
