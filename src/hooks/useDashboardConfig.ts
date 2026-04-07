@@ -102,5 +102,24 @@ export function useDashboardConfig() {
     [save],
   )
 
-  return { widgets, loading, addWidget, removeWidget, updateWidget, reorderWidgets }
+  /** Add multiple widgets at once (used by onboarding). */
+  const addWidgetBatch = useCallback(
+    async (items: Array<{ type: WidgetType; title: string; config?: Record<string, unknown> }>) => {
+      setWidgets((prev) => {
+        const newWidgets: Widget[] = items.map((item, i) => ({
+          id: crypto.randomUUID(),
+          type: item.type,
+          title: item.title,
+          position: prev.length + i,
+          config: item.config ?? {},
+        }))
+        const updated = [...prev, ...newWidgets]
+        save(updated)
+        return updated
+      })
+    },
+    [save],
+  )
+
+  return { widgets, loading, addWidget, addWidgetBatch, removeWidget, updateWidget, reorderWidgets }
 }

@@ -2,18 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reset / base global */
+/* ── Reset / base ─────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background-color: #030712; /* gray-950 */
+  background-color: #030712;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 #root {
   min-height: 100svh;
+}
+
+/* ── Light mode overrides ─────────────────────────────────────────────────── */
+html:not(.dark) body                { background-color: #f1f5f9; color: #0f172a; }
+html:not(.dark) .bg-gray-950        { background-color: #f1f5f9 !important; }
+html:not(.dark) .bg-gray-900        { background-color: #ffffff !important; }
+html:not(.dark) .bg-gray-900\/80    { background-color: rgba(255,255,255,0.85) !important; }
+html:not(.dark) .bg-gray-900\/40    { background-color: rgba(241,245,249,0.6) !important; }
+html:not(.dark) .bg-gray-900\/97    { background-color: rgba(255,255,255,0.97) !important; }
+html:not(.dark) .bg-gray-800        { background-color: #e2e8f0 !important; }
+html:not(.dark) .bg-gray-800\/40    { background-color: rgba(226,232,240,0.4) !important; }
+html:not(.dark) .bg-gray-800\/60    { background-color: rgba(226,232,240,0.6) !important; }
+html:not(.dark) .bg-gray-700        { background-color: #cbd5e1 !important; }
+
+html:not(.dark) .border-gray-800       { border-color: #e2e8f0 !important; }
+html:not(.dark) .border-gray-800\/70   { border-color: rgba(226,232,240,0.9) !important; }
+html:not(.dark) .border-gray-800\/60   { border-color: rgba(226,232,240,0.8) !important; }
+html:not(.dark) .border-gray-800\/40   { border-color: rgba(226,232,240,0.6) !important; }
+html:not(.dark) .border-gray-700       { border-color: #cbd5e1 !important; }
+html:not(.dark) .border-gray-700\/50   { border-color: rgba(203,213,225,0.7) !important; }
+
+html:not(.dark) .text-white    { color: #0f172a !important; }
+html:not(.dark) .text-gray-200 { color: #334155 !important; }
+html:not(.dark) .text-gray-300 { color: #475569 !important; }
+html:not(.dark) .text-gray-400 { color: #64748b !important; }
+html:not(.dark) .text-gray-500 { color: #64748b !important; }
+html:not(.dark) .text-gray-600 { color: #94a3b8 !important; }
+html:not(.dark) .text-gray-700 { color: #94a3b8 !important; }
+html:not(.dark) .text-gray-800 { color: #cbd5e1 !important; }
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+
+@keyframes habitCheck {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.3); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes confettiPop {
+  0%   { transform: translateY(0) scale(1);     opacity: 1; }
+  100% { transform: translateY(-50px) scale(0); opacity: 0; }
+}
+
+@keyframes scaleIn {
+  0%   { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.animate-slide-up { animation: slideUp  0.25s ease-out both; }
+.animate-fade-in  { animation: fadeIn   0.2s  ease-out both; }
+.animate-scale-in { animation: scaleIn  0.2s  ease-out both; }
+
+/* Skeleton shimmer overlay */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+html:not(.dark) .skeleton-shimmer {
+  background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+/* Confetti particle */
+.confetti-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confettiPop 0.6s ease-out forwards;
+  pointer-events: none;
 }

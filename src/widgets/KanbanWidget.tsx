@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -16,8 +16,38 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import toast from 'react-hot-toast'
 import { useDayContext } from '../context/DayContext'
 import type { KanbanColumn, KanbanTask, KanbanData } from '../types'
+
+// ─── Confetti burst ───────────────────────────────────────────────────────────
+
+function ConfettiBurst({ x, y }: { x: number; y: number }) {
+  const colors = ['#0ea5e9', '#22c55e', '#f59e0b', '#a855f7', '#ef4444']
+  const particles = Array.from({ length: 8 }, (_, i) => ({
+    color: colors[i % colors.length],
+    angle: (i * 360) / 8,
+    delay: i * 30,
+  }))
+
+  return (
+    <>
+      {particles.map((p, i) => (
+        <div
+          key={i}
+          className="confetti-particle"
+          style={{
+            left: x,
+            top: y,
+            backgroundColor: p.color,
+            transform: `rotate(${p.angle}deg)`,
+            animationDelay: `${p.delay}ms`,
+          }}
+        />
+      ))}
+    </>
+  )
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -391,6 +421,8 @@ export default function KanbanWidget() {
   const [localData,    setLocalData]    = useState<KanbanData | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
+  const [confetti,     setConfetti]     = useState<{ x: number; y: number; id: number } | null>(null)
+  const confettiTimer                   = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Sync from snapshot (runs once when snapshot loads, and when date changes)
   useEffect(() => {
@@ -528,6 +560,9 @@ export default function KanbanWidget() {
       if (!activeTask) return prev
 
       const toColId   = resolveColumnId(overId) ?? activeTask.columnId
+      const wasDone   = activeTask.columnId === lastColumnId
+      const nowDone   = toColId === lastColumnId
+
       const colTasks  = prev.tasks
         .filter((t) => t.columnId === activeTask.columnId)
         .sort((a, b) => a.order - b.order)
@@ -535,7 +570,6 @@ export default function KanbanWidget() {
       let nextTasks: KanbanTask[]
 
       if (activeTask.columnId === toColId && activeId !== overId) {
-        // Same-column reorder
         const oldIdx = colTasks.findIndex((t) => t.id === activeId)
         const newIdx = colTasks.findIndex((t) => t.id === overId)
 
@@ -550,7 +584,6 @@ export default function KanbanWidget() {
           })
         }
       } else {
-        // Cross-column move (already reflected by onDragOver) — just normalise orders
         const groups: Record<string, KanbanTask[]> = {}
         for (const t of prev.tasks) {
           if (!groups[t.columnId]) groups[t.columnId] = []
@@ -559,6 +592,14 @@ export default function KanbanWidget() {
         nextTasks = Object.values(groups).flatMap((group) =>
           [...group].sort((a, b) => a.order - b.order).map((t, i) => ({ ...t, order: i })),
         )
+      }
+
+      // Fire confetti + toast when a task lands in the last column
+      if (!wasDone && nowDone) {
+        toast.success('Tarefa concluída! 🎉')
+        if (confettiTimer.current) clearTimeout(confettiTimer.current)
+        setConfetti({ x: 50, y: 50, id: Date.now() })
+        confettiTimer.current = setTimeout(() => setConfetti(null), 800)
       }
 
       const result = { ...prev, tasks: nextTasks }
@@ -579,6 +620,13 @@ export default function KanbanWidget() {
 
   return (
     <div className="relative h-full flex flex-col gap-3">
+      {/* Confetti overlay */}
+      {confetti && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden z-10">
+          <ConfettiBurst key={confetti.id} x={confetti.x} y={confetti.y} />
+        </div>
+      )}
+
       {/* Settings panel overlay */}
       {showSettings && (
         <SettingsPanel
@@ -607,6 +655,16 @@ export default function KanbanWidget() {
           ⚙
         </button>
       </div>
+
+      {/* Empty state */}
+      {data.tasks.length === 0 && isToday && (
+        <div className="flex flex-col items-center justify-center py-4 gap-2 text-center animate-fade-in">
+          <span className="text-2xl select-none">📋</span>
+          <p className="text-gray-500 text-xs leading-relaxed max-w-[200px]">
+            Nenhuma tarefa ainda. Clique no <strong>+</strong> de uma coluna para começar!
+          </p>
+        </div>
+      )}
 
       {/* Board */}
       <DndContext

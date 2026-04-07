@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
+import toast from 'react-hot-toast'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext'
 import { useDayContext } from '../context/DayContext'
@@ -413,7 +414,7 @@ function HabitCell({ checked, scheduled, isToday, isFuture, onClick }: CellProps
           ? 'opacity-25 cursor-not-allowed'
           : 'hover:scale-110 cursor-pointer active:scale-95'}
         ${checked
-          ? 'bg-green-500/20 border border-green-500/50'
+          ? 'bg-green-500/20 border border-green-500/50 scale-105'
           : isToday
             ? 'border-2 border-gray-600 hover:border-brand-500/60 bg-transparent'
             : 'border border-gray-800 bg-transparent'}
@@ -423,7 +424,7 @@ function HabitCell({ checked, scheduled, isToday, isFuture, onClick }: CellProps
       {checked && (
         <span
           className="text-green-400 text-sm font-bold leading-none"
-          style={{ animation: 'habitCheck 0.2s ease-out' }}
+          style={{ animation: 'habitCheck 0.25s ease-out' }}
         >
           ✓
         </span>
@@ -458,9 +459,13 @@ export default function HabitsWidget() {
   // ── Toggle a habit cell ──────────────────────────────────────────────────
 
   function handleToggle(habitId: string, dateStr: string) {
-    if (dateStr !== todayStr) return  // only today is editable
+    if (dateStr !== todayStr) return
     const current = !!(snapshot?.habits?.[habitId])
     updateHabit(habitId, !current)
+    if (!current) {
+      const habit = sortedHabits.find((h) => h.id === habitId)
+      toast.success(`${habit?.name ?? 'Hábito'} marcado! 🔥`, { duration: 2000 })
+    }
   }
 
   // ── Sorted habits ──────────────────────────────────────────────────────

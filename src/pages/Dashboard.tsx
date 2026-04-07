@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   DndContext,
@@ -13,12 +13,16 @@ import {
   arrayMove,
   rectSortingStrategy,
 } from '@dnd-kit/sortable'
+import toast from 'react-hot-toast'
 
 import { useAuth }            from '../context/AuthContext'
+import { useTheme }           from '../context/ThemeContext'
 import { useDayContext }      from '../context/DayContext'
 import { useDashboardConfig } from '../hooks/useDashboardConfig'
 import WidgetContainer        from '../components/WidgetContainer'
 import AddWidgetModal         from '../components/AddWidgetModal'
+import OnboardingModal        from '../components/OnboardingModal'
+import SkeletonWidget         from '../components/SkeletonWidget'
 import TimeNav                from '../components/TimeNav'
 import type { ViewMode }      from '../components/TimeNav'
 import WeekView               from './WeekView'
@@ -103,6 +107,7 @@ function renderWidgetContent(
 
 export default function Dashboard() {
   const { currentUser, userProfile, isAdmin, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const { viewDate, setViewDate, isToday } = useDayContext()
@@ -111,10 +116,33 @@ export default function Dashboard() {
     widgets,
     loading,
     addWidget,
+    addWidgetBatch,
     removeWidget,
     updateWidget,
     reorderWidgets,
   } = useDashboardConfig()
+
+  // ── Onboarding ───────────────────────────────────────────────────────────
+
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
+  useEffect(() => {
+    const flag = localStorage.getItem('mhl-show-onboarding')
+    if (flag === '1' && !loading) {
+      setShowOnboarding(true)
+      localStorage.removeItem('mhl-show-onboarding')
+    }
+  }, [loading])
+
+  async function handleOnboardingComplete(
+    selected: Array<{ type: import('../types').WidgetType; title: string }>,
+  ) {
+    setShowOnboarding(false)
+    if (selected.length > 0) {
+      await addWidgetBatch(selected)
+      toast.success(`${selected.length} widget${selected.length > 1 ? 's' : ''} adicionado${selected.length > 1 ? 's' : ''}! 🎉`)
+    }
+  }
 
   // ── Temporal navigation state ────────────────────────────────────────────
 
@@ -220,34 +248,68 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
 
+      {/* ── Onboarding modal ────────────────────────────────────────────── */}
+      {showOnboarding && (
+        <OnboardingModal
+          onComplete={handleOnboardingComplete}
+          onSkip={() => setShowOnboarding(false)}
+        />
+      )}
+
       {/* ── Topbar ──────────────────────────────────────────────────────── */}
-      <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between flex-shrink-0">
+      <header className="border-b border-gray-800 px-4 sm:px-6 py-4 flex items-center justify-between flex-shrink-0">
         <h1 className="text-xl font-bold tracking-tight">
           My<span className="text-brand-500">LocalHost</span>
         </h1>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {isAdmin && (
             <Link
               to="/admin"
               className="
+                hidden sm:inline-flex
                 text-xs text-purple-400 hover:text-purple-300
                 border border-purple-500/30 rounded-lg px-3 py-1.5 transition
               "
             >
-              ⚙ Painel Admin
+              ⚙ Admin
             </Link>
           )}
 
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="
+              text-gray-500 hover:text-white transition
+              p-1.5 rounded-lg hover:bg-gray-800/60 text-base
+            "
+            title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+
           <RoleBadge role={role} />
 
-          <span className="text-sm text-gray-500 max-w-[160px] truncate">
-            {currentUser?.displayName || currentUser?.email}
-          </span>
+          {/* Profile link */}
+          <Link
+            to="/profile"
+            className="
+              flex items-center gap-1.5 text-sm text-gray-500 hover:text-white transition
+              max-w-[120px] sm:max-w-[180px] truncate
+            "
+            title="Perfil"
+          >
+            <span className="hidden sm:inline truncate">
+              {currentUser?.displayName || currentUser?.email}
+            </span>
+            <span className="w-7 h-7 rounded-full bg-brand-500/20 text-brand-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+              {(currentUser?.displayName || currentUser?.email || '?')[0].toUpperCase()}
+            </span>
+          </Link>
 
           <button
             onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-white transition"
+            className="text-sm text-gray-500 hover:text-white transition hidden sm:inline"
           >
             Sair
           </button>
@@ -301,16 +363,18 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Loading state */}
+          {/* Skeleton loading state */}
           {loading && (
-            <div className="flex items-center justify-center py-24 text-gray-600 text-sm">
-              <span className="animate-pulse">Carregando dashboard…</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[0, 1, 2].map((i) => (
+                <SkeletonWidget key={i} />
+              ))}
             </div>
           )}
 
           {/* Empty state */}
           {!loading && widgets.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-center animate-fade-in">
               <div className="text-6xl select-none">🧩</div>
               <h3 className="text-lg font-semibold text-gray-300">
                 Seu dashboard está vazio
@@ -348,7 +412,10 @@ export default function Dashboard() {
                       key={widget.id}
                       id={widget.id}
                       title={widget.title}
-                      onRemove={() => removeWidget(widget.id)}
+                      onRemove={() => {
+                        removeWidget(widget.id)
+                        toast.success('Widget removido')
+                      }}
                       onTitleChange={(newTitle) =>
                         updateWidget(widget.id, { title: newTitle })
                       }
@@ -385,7 +452,10 @@ export default function Dashboard() {
       {/* ── Add widget modal ─────────────────────────────────────────────── */}
       {showAddModal && (
         <AddWidgetModal
-          onAdd={(type, title) => addWidget(type, title)}
+          onAdd={(type, title) => {
+            addWidget(type, title)
+            toast.success(`Widget "${title}" adicionado!`)
+          }}
           onClose={() => setShowAddModal(false)}
         />
       )}

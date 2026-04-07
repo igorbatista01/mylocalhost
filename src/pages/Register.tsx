@@ -29,6 +29,8 @@ export default function Register() {
     setLoading(true)
     try {
       await register(name, email, password, inviteCode.trim().toUpperCase())
+      // Flag for onboarding modal on first dashboard visit
+      localStorage.setItem('mhl-show-onboarding', '1')
       navigate('/dashboard')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : ''

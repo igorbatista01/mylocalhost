@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
+import toast from 'react-hot-toast'
 import { db }       from '../lib/firebase'
 import { useAuth }  from '../context/AuthContext'
 
@@ -114,8 +115,9 @@ function useProtectedStore(uid: string) {
     const hash = await sha256(pin)
     await setDoc(pinConfigRef(uid), { pinHash: hash })
     setStoredHash(hash)
-    setDataLoaded(false)   // trigger data load after unlock
+    setDataLoaded(false)
     setPhase('unlocked')
+    toast.success('PIN configurado! 🔒')
   }, [uid])
 
   const unlock = useCallback(async (pin: string): Promise<boolean> => {
