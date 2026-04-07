@@ -515,10 +515,17 @@ export default function HabitsWidget() {
         )}
         <button
           onClick={() => setShowSettings(true)}
-          className="text-gray-600 hover:text-gray-300 transition text-sm leading-none"
+          className="
+            flex items-center gap-1.5
+            text-xs text-gray-400 hover:text-white
+            border border-gray-700/60 hover:border-gray-500
+            bg-gray-800/50 hover:bg-gray-700/60
+            px-2.5 py-1 rounded-lg transition
+          "
           title="Configurar hábitos"
         >
-          ⚙
+          <span className="text-sm leading-none">⚙</span>
+          <span>Editar</span>
         </button>
       </div>
 

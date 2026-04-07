@@ -423,6 +423,28 @@ export default function Dashboard() {
                       {renderWidgetContent(widget, updateWidget)}
                     </WidgetContainer>
                   ))}
+
+                  {/* Add widget card — always visible at the end of the grid */}
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="
+                      flex flex-col items-center justify-center gap-3
+                      min-h-[180px] rounded-2xl
+                      border-2 border-dashed border-gray-700/60
+                      hover:border-brand-500/50 hover:bg-brand-500/5
+                      text-gray-600 hover:text-brand-400
+                      transition-all duration-200 group
+                    "
+                  >
+                    <span className="
+                      text-3xl w-12 h-12 rounded-full
+                      flex items-center justify-center
+                      border-2 border-current
+                      group-hover:scale-110 transition-transform duration-200
+                      font-light leading-none
+                    ">+</span>
+                    <span className="text-sm font-medium">Adicionar widget</span>
+                  </button>
                 </div>
               </SortableContext>
             </DndContext>
