@@ -57,7 +57,7 @@ const WIDGET_OPTIONS: WidgetOption[] = [
     type:         'protected',
     icon:         '🔒',
     name:         'Protegido',
-    description:  'Bloco de texto bloqueado com PIN',
+    description:  'Senhas e empréstimos protegidos por PIN',
     defaultTitle: 'Privado',
   },
 ]

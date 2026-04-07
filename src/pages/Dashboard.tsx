@@ -29,6 +29,7 @@ import HabitsWidget           from '../widgets/HabitsWidget'
 import NotesWidget            from '../widgets/NotesWidget'
 import CounterWidget          from '../widgets/CounterWidget'
 import QuoteWidget            from '../widgets/QuoteWidget'
+import ProtectedWidget        from '../widgets/ProtectedWidget'
 
 import {
   todayString,
@@ -81,6 +82,8 @@ function renderWidgetContent(
       return <NotesWidget />
     case 'quote':
       return <QuoteWidget />
+    case 'protected':
+      return <ProtectedWidget />
     case 'counter': {
       const cfg = { ...DEFAULT_COUNTER_CONFIG, ...(widget.config as object) }
       return (
