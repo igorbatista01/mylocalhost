@@ -250,11 +250,15 @@ function SettingsPanel({ habits, onSave, onClose }: SettingsPanelProps) {
   }
 
   return (
-    <div className="absolute inset-0 z-20 bg-gray-900/97 backdrop-blur-sm rounded-2xl p-4 flex flex-col">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 w-full max-w-md mx-4 shadow-2xl flex flex-col max-h-[85vh]">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-white">⚙ Configurar Hábitos</h3>
-        <button onClick={onClose} className="text-gray-500 hover:text-white transition text-xl leading-none">×</button>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-white">⚙ Configurar Hábitos</h3>
+        <button onClick={onClose} className="text-gray-500 hover:text-white transition text-2xl leading-none">×</button>
       </div>
 
       {/* Habit list */}
@@ -377,6 +381,7 @@ function SettingsPanel({ habits, onSave, onClose }: SettingsPanelProps) {
           Cancelar
         </button>
       </div>
+    </div>
     </div>
   )
 }
