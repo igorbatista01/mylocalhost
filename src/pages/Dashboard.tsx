@@ -21,8 +21,11 @@ import AddWidgetModal           from '../components/AddWidgetModal'
 import PlaceholderWidget        from '../widgets/PlaceholderWidget'
 import KanbanWidget             from '../widgets/KanbanWidget'
 import HabitsWidget             from '../widgets/HabitsWidget'
+import NotesWidget              from '../widgets/NotesWidget'
+import CounterWidget            from '../widgets/CounterWidget'
+import QuoteWidget              from '../widgets/QuoteWidget'
 
-import type { UserRole, WidgetType } from '../types'
+import type { UserRole, Widget } from '../types'
 
 // ─── Role badge ───────────────────────────────────────────────────────────────
 
@@ -42,13 +45,37 @@ function RoleBadge({ role }: { role: UserRole }) {
   )
 }
 
+// ─── Default counter config ───────────────────────────────────────────────────
+
+const DEFAULT_COUNTER_CONFIG = { name: 'Contador', initialValue: 0, step: 1 }
+
 // ─── Widget renderer (dispatches to real widget or placeholder) ───────────────
 
-function renderWidgetContent(type: WidgetType) {
-  switch (type) {
-    case 'kanban':  return <KanbanWidget />
-    case 'habits':  return <HabitsWidget />
-    default:        return <PlaceholderWidget type={type} />
+function renderWidgetContent(
+  widget: Widget,
+  updateWidget: (id: string, changes: Partial<Omit<Widget, 'id'>>) => void,
+) {
+  switch (widget.type) {
+    case 'kanban':
+      return <KanbanWidget />
+    case 'habits':
+      return <HabitsWidget />
+    case 'notes':
+      return <NotesWidget />
+    case 'quote':
+      return <QuoteWidget />
+    case 'counter': {
+      const cfg = { ...DEFAULT_COUNTER_CONFIG, ...(widget.config as object) }
+      return (
+        <CounterWidget
+          widgetId={widget.id}
+          config={cfg as { name: string; initialValue: number; step: number }}
+          onConfigChange={(newConfig) => updateWidget(widget.id, { config: newConfig as unknown as Record<string, unknown> })}
+        />
+      )
+    }
+    default:
+      return <PlaceholderWidget type={widget.type} />
   }
 }
 
@@ -194,7 +221,7 @@ export default function Dashboard() {
                       updateWidget(widget.id, { title: newTitle })
                     }
                   >
-                    {renderWidgetContent(widget.type)}
+                    {renderWidgetContent(widget, updateWidget)}
                   </WidgetContainer>
                 ))}
               </div>
